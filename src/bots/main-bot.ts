@@ -68,6 +68,20 @@ bot.on('message', async (msg) => {
     return;
   }
 
+  const roundDoc = await getCurrentRound();
+
+  if (!roundDoc) {
+    console.log('There is no round-doc in message event \n');
+    return;
+  }
+
+  const active = roundDoc.status === 'active';
+
+  if (!active) {
+    console.log('Round finished - bot paused. Skipping buy.');
+    return;
+  }
+
   queue.add(() => handleMessage(text));
 });
 
