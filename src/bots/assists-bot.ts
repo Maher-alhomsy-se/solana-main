@@ -1,16 +1,21 @@
 import dotenv from 'dotenv';
+dotenv.config();
+
 import TelegramBot from 'node-telegram-bot-api';
 
 import { assistsValidAddress, getCurrentRound, splitTokens } from '../utils';
 import { txCollection, tokensCollection, balanceCollection } from '../lib/db';
 
-dotenv.config();
+const BOT_TOKEN = process.env.ASSISTS_BOT_TOKEN;
 
-let bot = createBot();
-const BOT_TOKEN = process.env.ASSISTS_BOT_TOKEN!;
+if (!BOT_TOKEN) {
+  throw new Error('❌ TELEGRAM_BOT_TOKEN is not set in .env');
+}
+
+let bot: TelegramBot;
 
 function createBot() {
-  const b = new TelegramBot(BOT_TOKEN, { polling: true });
+  const b = new TelegramBot(BOT_TOKEN!, { polling: true });
 
   b.on('polling_error', (err) => {
     console.log('Polling error in assits bot: \n');
@@ -36,6 +41,8 @@ function restartBot() {
     console.error('Failed to restart assists bot: ', e, '\n');
   }
 }
+
+bot = createBot();
 
 bot.onText(/^\/start$/, async (msg) => {
   const chatId = msg.chat.id;

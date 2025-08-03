@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+dotenv.config();
+
 import PQueue from 'p-queue';
 import TelegramBot from 'node-telegram-bot-api';
 
@@ -10,15 +12,19 @@ import {
 } from '../utils';
 import { tokensCollection } from '../lib/db';
 
-dotenv.config();
+// 1️⃣ Load token early
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-const token = process.env.TELEGRAM_BOT_TOKEN!;
+if (!TELEGRAM_BOT_TOKEN) {
+  throw new Error('❌ TELEGRAM_BOT_TOKEN is not set in .env');
+}
 
-let bot = createBot();
+// let bot = createBot();
+let bot: TelegramBot;
 const queue = new PQueue({ interval: 10000, intervalCap: 1 }); // 1 task every 10s
 
 function createBot() {
-  const b = new TelegramBot(token, { polling: true });
+  const b = new TelegramBot(TELEGRAM_BOT_TOKEN!, { polling: true });
 
   b.on('polling_error', (err) => {
     console.error('Polling error:', err.message, '\n');
@@ -43,6 +49,8 @@ function restartBot() {
     console.error('Failed to restart bot:', e, '\n');
   }
 }
+
+bot = createBot();
 
 bot.on('message', async (msg) => {
   const text = msg.text?.trim();
