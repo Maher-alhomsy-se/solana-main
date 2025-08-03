@@ -22,7 +22,7 @@ async function swapSolToToken(token: string) {
   const balance = await connection.getBalance(payer.publicKey);
 
   if (balance < fiveUsdInLamports) {
-    console.log('⚠️ Balance is less than $5 in SOL');
+    console.log('⚠️ Balance is less than $10 in SOL');
     return;
   }
 

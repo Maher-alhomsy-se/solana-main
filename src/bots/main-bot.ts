@@ -87,7 +87,7 @@ async function handleMessage(text: string) {
       name,
       symbol,
       mint: text,
-      value: '5$',
+      value: '10$',
       hash: signature,
       boughtAt: new Date(),
       round: roundDoc.status === 'active' ? roundDoc.round : roundDoc.round + 1,
