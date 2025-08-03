@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import TelegramBot from 'node-telegram-bot-api';
 
-import { assistsValidAddress, getCurrentRound } from '../utils';
+import { assistsValidAddress, getCurrentRound, splitTokens } from '../utils';
 import { txCollection, tokensCollection, balanceCollection } from '../lib/db';
 
 dotenv.config();
@@ -80,9 +80,8 @@ Once the transaction is confirmed, you'll be automatically added to the system.`
 
 // Handle /total command
 bot.onText(/^\/total$/, async (msg) => {
-  const chatId = msg.chat.id;
-
   const now = new Date();
+  const chatId = msg.chat.id;
 
   const roundDoc = await getCurrentRound();
 
@@ -121,19 +120,28 @@ bot.onText(/^\/total$/, async (msg) => {
     }
   }
 
-  const tokenList = tokens.length
-    ? tokens
-        .map((t, i) => {
-          const nameOrMint = t?.name || t.mint;
-          const dexscreenerUrl = `https://dexscreener.com/solana/${t.mint}`;
-          return `${i + 1}. <a href="${dexscreenerUrl}">${nameOrMint}</a>`;
-        })
-        .join('\n')
-    : '<i>No tokens bought in the last 7 days.</i>';
+  if (!tokens.length) {
+    return bot.sendMessage(
+      chatId,
+      `<i>No tokens bought in the last 7 days.</i>`,
+      { parse_mode: 'HTML' }
+    );
+  }
 
-  const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
+  const messages = splitTokens(tokens);
 
-  bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+  for (let i = 0; i < messages.length; i++) {
+    let text;
+
+    if (i === 0) {
+      text = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${messages[i]}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
+    } else text = messages[i];
+
+    await bot.sendMessage(chatId, text, {
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    });
+  }
 });
 
 // Handle /my-balance command
