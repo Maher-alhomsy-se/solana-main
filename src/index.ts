@@ -3,9 +3,12 @@ import cron from 'node-cron';
 import reset from './reset';
 import { getCurrentRound } from './utils';
 import { roundCollection } from './lib/db';
-import { mainBot, assistsBot } from './bots';
+// import { mainBot, assistsBot } from './bots';
 import newTransaction from './new-transaction';
 import startNewRound from './start-new-round';
+
+import './bots/main-bot'; // force execute bot file
+import './bots/assists-bot';
 
 async function checkRoundEnd() {
   const roundDoc = await getCurrentRound();
@@ -32,6 +35,8 @@ async function checkRoundEnd() {
 }
 
 const main = async () => {
+  console.log('🚀 Bots initialized. Cron jobs starting...');
+
   // Check every minute if round has ended
   cron.schedule('* * * * *', async () => {
     await checkRoundEnd();
