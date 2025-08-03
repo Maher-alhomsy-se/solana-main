@@ -18,7 +18,9 @@ const swapTokenToSol = async (token: string) => {
   const quoteResponse = await jupiter.quoteGet({
     slippageBps: 100,
     inputMint: token,
-    amount: Number(balance),
+    // amount: Number(balance),
+    // @ts-ignore
+    amount: balance.toString(),
     outputMint: 'So11111111111111111111111111111111111111112',
   });
 
