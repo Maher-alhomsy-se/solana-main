@@ -25,3 +25,5 @@ async function formatRemainingTime(_endDate: Date) {
 
   console.log(result);
 }
+
+export default formatRemainingTime;

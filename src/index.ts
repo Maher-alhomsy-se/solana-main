@@ -1,11 +1,10 @@
 import cron from 'node-cron';
 
 import reset from './reset';
-import { getCurrentRound } from './utils';
 import { roundCollection } from './lib/db';
-// import { mainBot, assistsBot } from './bots';
 import newTransaction from './new-transaction';
 import startNewRound from './start-new-round';
+import { formatRemainingTime, getCurrentRound } from './utils';
 
 import './bots/main-bot'; // force execute bot file
 import './bots/assists-bot';
