@@ -9,7 +9,14 @@ import { formatRemainingTime, getCurrentRound } from './utils';
 import './bots/main-bot'; // force execute bot file
 import './bots/assists-bot';
 
+let isResetting = false;
+
 async function checkRoundEnd() {
+  if (isResetting) {
+    console.log('⏳ Reset already in progress, skipping...');
+    return;
+  }
+
   const roundDoc = await getCurrentRound();
 
   if (!roundDoc) {
@@ -23,15 +30,23 @@ async function checkRoundEnd() {
   const endDate = new Date(roundDoc.endDate);
 
   if (now >= endDate) {
-    await roundCollection.updateOne(
-      // @ts-ignore
-      { _id: 'round-collection' },
-      { $set: { status: 'finished' } }
-    );
+    isResetting = true;
 
-    await reset();
+    try {
+      await roundCollection.updateOne(
+        // @ts-ignore
+        { _id: 'round-collection' },
+        { $set: { status: 'finished' } }
+      );
 
-    await startNewRound({ endDate, roundDoc });
+      await reset();
+
+      await startNewRound({ endDate, roundDoc });
+    } catch (err) {
+      console.error('❌ Error during reset:', err);
+    } finally {
+      isResetting = false;
+    }
   }
 }
 
