@@ -12,8 +12,9 @@ if (!BOT_TOKEN) {
   throw new Error('❌ TELEGRAM_BOT_TOKEN is not set in .env');
 }
 
+const restarting = { value: false };
+
 let bot: TelegramBot;
-let lastUpdateTime = Date.now();
 
 function createBot() {
   const b = new TelegramBot(BOT_TOKEN!, {
@@ -23,7 +24,10 @@ function createBot() {
   b.on('polling_error', async (err) => {
     console.log('Polling error in assists bot: \n', err.message, '\n');
 
-    restartBot();
+    if (restarting.value) return;
+
+    restarting.value = true;
+    await restartBot();
   });
 
   return b;
@@ -33,15 +37,11 @@ async function restartBot() {
   await bot.stopPolling({ cancel: true });
   await new Promise((res) => setTimeout(res, 3000));
   await bot.startPolling({ polling: true, restart: true });
+
+  restarting.value = false;
 }
 
 bot = createBot();
-
-// setInterval(async () => {
-//   console.log('⏱ Scheduled restart of assist bot every 10min');
-
-//   restartBot();
-// }, 60 * 1000 * 10);
 
 bot.onText(/^\/start$/, async (msg) => {
   const chatId = msg.chat.id;
@@ -171,8 +171,6 @@ bot.on('text', async (msg) => {
     console.log('There is no text in assists bot \n');
     return;
   }
-
-  lastUpdateTime = Date.now();
 
   const commands = ['/to', '/total', '/my_balance', '/start'];
 
