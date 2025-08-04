@@ -13,6 +13,17 @@ if (!BOT_TOKEN) {
 }
 
 let bot: TelegramBot;
+let lastUpdateTime = Date.now();
+
+function monitorBotHealth() {
+  const now = Date.now();
+  if (now - lastUpdateTime > 1000 * 60 * 5) {
+    console.log('Bot inactive for too long, restarting... \n');
+    restartBot();
+  }
+}
+
+setInterval(monitorBotHealth, 60 * 1000);
 
 function createBot() {
   const b = new TelegramBot(BOT_TOKEN!, { polling: true });
@@ -32,7 +43,7 @@ function restartBot() {
     console.log('Restarting assists bot polling... \n');
 
     bot
-      .stopPolling()
+      .stopPolling({ cancel: true })
       .then(() => {
         bot = createBot();
       })
@@ -172,6 +183,8 @@ bot.on('text', async (msg) => {
     console.log('There is no text in assists bot \n');
     return;
   }
+
+  lastUpdateTime = Date.now();
 
   const commands = ['/to', '/total', '/my_balance', '/start'];
 
