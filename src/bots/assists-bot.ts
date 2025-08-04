@@ -3,7 +3,12 @@ dotenv.config();
 
 import TelegramBot from 'node-telegram-bot-api';
 
-import { assistsValidAddress, getCurrentRound, splitTokens } from '../utils';
+import {
+  splitTokens,
+  getCurrentRound,
+  scheduleRestart,
+  assistsValidAddress,
+} from '../utils';
 import { txCollection, tokensCollection, balanceCollection } from '../lib/db';
 
 const BOT_TOKEN = process.env.ASSISTS_BOT_TOKEN;
@@ -13,45 +18,30 @@ if (!BOT_TOKEN) {
 }
 
 let bot: TelegramBot;
+let restarting = { value: false };
 let lastUpdateTime = Date.now();
 
-function monitorBotHealth() {
-  const now = Date.now();
-  if (now - lastUpdateTime > 1000 * 60 * 5) {
-    console.log('Bot inactive for too long, restarting... \n');
-    restartBot();
-  }
-}
-
-setInterval(monitorBotHealth, 60 * 1000);
-
 function createBot() {
-  const b = new TelegramBot(BOT_TOKEN!, { polling: true });
+  const b = new TelegramBot(BOT_TOKEN!, {
+    polling: { autoStart: true, interval: 1000, params: { timeout: 60 } },
+  });
 
   b.on('polling_error', (err) => {
-    console.log('Polling error in assits bot: \n');
-    console.log(err.message, '\n');
+    console.log('Polling error in assists bot: \n', err.message, '\n');
 
-    restartBot();
+    scheduleRestart({ bot, createBot, restarting });
   });
 
   return b;
 }
 
-function restartBot() {
-  try {
-    console.log('Restarting assists bot polling... \n');
-
-    bot
-      .stopPolling({ cancel: true })
-      .then(() => {
-        bot = createBot();
-      })
-      .catch(console.error);
-  } catch (e) {
-    console.error('Failed to restart assists bot: ', e, '\n');
+setInterval(() => {
+  const now = Date.now();
+  if (now - lastUpdateTime > 1000 * 60 * 5) {
+    console.log('Bot inactive for too long, scheduling restart...\n');
+    scheduleRestart({ bot, createBot, restarting });
   }
-}
+}, 60 * 1000);
 
 bot = createBot();
 

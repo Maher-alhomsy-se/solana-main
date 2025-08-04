@@ -10,6 +10,7 @@ export { default as getTokenBalance } from './get-token-balance';
 export { default as getCurrentRound } from './get-current-round';
 export { default as getTotalBalance } from './get-total-balance';
 export { default as isExecutable } from './is-executable-address';
+export { default as scheduleRestart } from './schedule-restart-bot';
 export { default as assistsValidAddress } from './assist-valid-address';
 export { default as formatRemainingTime } from './format-remaining-time';
 export { default as fetchNewTransaction } from './fetch-new-transaction';
