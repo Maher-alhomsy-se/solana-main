@@ -18,6 +18,8 @@ async function checkRoundEnd() {
     return;
   }
 
+  formatRemainingTime(roundDoc.endDate);
+
   const now = new Date();
   const endDate = new Date(roundDoc.endDate);
 
