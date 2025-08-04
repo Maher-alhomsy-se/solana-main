@@ -37,11 +37,11 @@ async function restartBot() {
 
 bot = createBot();
 
-setInterval(async () => {
-  console.log('⏱ Scheduled restart of assist bot every 10min');
+// setInterval(async () => {
+//   console.log('⏱ Scheduled restart of assist bot every 10min');
 
-  restartBot();
-}, 60 * 1000 * 10);
+//   restartBot();
+// }, 60 * 1000 * 10);
 
 bot.onText(/^\/start$/, async (msg) => {
   const chatId = msg.chat.id;
