@@ -7,7 +7,7 @@ import startNewRound from './start-new-round';
 import { formatRemainingTime, getCurrentRound } from './utils';
 
 import './bots/main-bot'; // force execute bot file
-import './bots/assists-bot';
+// import './bots/assists-bot';
 
 async function checkRoundEnd() {
   const roundDoc = await getCurrentRound();

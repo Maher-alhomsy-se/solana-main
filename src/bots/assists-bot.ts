@@ -12,8 +12,6 @@ if (!BOT_TOKEN) {
   throw new Error('❌ TELEGRAM_BOT_TOKEN is not set in .env');
 }
 
-const restarting = { value: false };
-
 let bot: TelegramBot;
 
 function createBot() {
@@ -22,23 +20,10 @@ function createBot() {
   });
 
   b.on('polling_error', async (err) => {
-    console.log('Polling error in assists bot: \n', err.message, '\n');
-
-    if (restarting.value) return;
-
-    restarting.value = true;
-    await restartBot();
+    console.error('Polling error in assists bot: \n', err.message, '\n');
   });
 
   return b;
-}
-
-async function restartBot() {
-  await bot.stopPolling({ cancel: true });
-  await new Promise((res) => setTimeout(res, 3000));
-  await bot.startPolling({ polling: true, restart: true });
-
-  restarting.value = false;
 }
 
 bot = createBot();
