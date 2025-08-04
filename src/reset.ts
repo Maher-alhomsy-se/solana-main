@@ -6,6 +6,8 @@ import {
 } from './lib/db';
 import { delay, getCurrentRound, sendSolToUser, swapTokenToSol } from './utils';
 
+const failedTokens: string[] = [];
+
 const reset = async () => {
   try {
     // const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -27,6 +29,9 @@ const reset = async () => {
 
       if (sign) {
         console.log(`✅ Sold ${mint}, tx: ${sign}`);
+      } else {
+        console.warn(`⚠️ Swap skipped for ${mint} (no route or zero balance)`);
+        failedTokens.push(mint);
       }
 
       console.log('\n\n');
@@ -92,6 +97,8 @@ const reset = async () => {
       userBreakdown: userMap,
       totalUserSent: totalUserSentIn7Days,
     });
+
+    console.log(failedTokens);
 
     console.log('✅ All tokens sold, users paid, and balance reset. \n');
   } catch (error) {
