@@ -14,6 +14,11 @@ async function sendSolToUser(toAddress: string, amount: number) {
   const recipient = new PublicKey(toAddress);
   const lamports = Math.floor(amount * LAMPORTS_PER_SOL); // Convert to lamports
 
+  if (lamports <= 0) {
+    console.warn(`⚠️ Skipping ${toAddress} — amount too small: ${amount} SOL`);
+    return null;
+  }
+
   const transaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: senderWallet.publicKey,
