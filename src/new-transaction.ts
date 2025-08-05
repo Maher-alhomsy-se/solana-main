@@ -43,30 +43,25 @@ async function newTransaction() {
     }
 
     for (const transaction of inComingTransactions) {
-      const { from_address, value, time, trans_id } = transaction;
+      const { from_address, value, time, trans_id, amount, token_decimals } =
+        transaction;
 
       const isExist = await txCollection.findOne({ trans_id });
 
-      if (isExist) {
-        if (isExist.time !== time) {
-          await txCollection.updateOne(
-            { trans_id },
-            { $inc: { value: Number(value) }, $set: { time } }
-          );
+      if (!isExist) {
+        const solAmount = amount / Math.pow(10, token_decimals);
 
-          totalBalance += Number(value);
-        }
-      } else {
         await txCollection.insertOne({
           time,
           trans_id,
           from_address,
+          sol: solAmount,
           value: Number(value),
           round:
             roundDoc.status === 'active' ? roundDoc.round : roundDoc.round + 1,
         });
 
-        totalBalance += Number(value);
+        totalBalance += Number(solAmount);
       }
     }
 
