@@ -1,5 +1,6 @@
 export { default as delay } from './delay';
 export { splitTokens } from './spilt-tokens';
+export { getTokenPriceInSol } from './get-token-price';
 export { default as getTokenInfo } from './get-token-info';
 export { default as sendSolToUser } from './send-sol-to-user';
 export { default as isValidAddress } from './is-valid-address';
