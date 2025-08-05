@@ -3,26 +3,21 @@ import {
   sendAndConfirmRawTransaction,
 } from '@solana/web3.js';
 
-import { getTokenInfo, getSolanaPrice } from '.';
 import { jupiter, payer, connection } from '../config/jupiter';
 
-async function swapSolToToken(token: string) {
-  const solUsdPrice = await getSolanaPrice();
+type Props = {
+  token: string;
+  decimals: number;
+};
 
-  console.log('Sol Price in USD ', solUsdPrice, '\n');
-
-  if (!solUsdPrice) {
-    console.error('❌ Failed to fetch SOL/USD price');
-    return;
-  }
-
-  const fiveUsdInSol = 10 / solUsdPrice;
-  const fiveUsdInLamports = Math.floor(fiveUsdInSol * 1e9);
+async function swapSolToToken({ token, decimals }: Props) {
+  const solAmount = 0.15;
+  const lamports = Math.floor(solAmount * 1e9);
 
   const balance = await connection.getBalance(payer.publicKey);
 
-  if (balance < fiveUsdInLamports) {
-    console.log('⚠️ Balance is less than $10 in SOL');
+  if (balance < lamports) {
+    console.info(`⚠️ Balance is less than ${solAmount} SOL \n`);
     return;
   }
 
@@ -30,13 +25,16 @@ async function swapSolToToken(token: string) {
     inputMint: 'So11111111111111111111111111111111111111112',
     outputMint: token,
     slippageBps: 100,
-    amount: fiveUsdInLamports,
+    amount: lamports,
     // restrictIntermediateTokens:t
   });
 
   if (!quoteResponse || !quoteResponse.outAmount) {
     throw new Error('❌ No swap route found');
   }
+
+  const tokenAmount = Number(quoteResponse.outAmount) / Math.pow(10, decimals);
+  const tokenPriceInSol = solAmount / tokenAmount;
 
   const userPublicKey = payer.publicKey.toBase58();
 
@@ -57,9 +55,7 @@ async function swapSolToToken(token: string) {
     Buffer.from(tx.serialize())
   );
 
-  const { name, symbol } = await getTokenInfo(token);
-
-  return { signature, name, symbol };
+  return { signature, tokenPriceInSol };
 }
 
 export default swapSolToToken;
