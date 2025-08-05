@@ -133,6 +133,7 @@ async function handleMessage(props: Props) {
       name,
       symbol,
       usdPrice,
+      decimals,
       mint: token,
       tokenAmount,
       hash: signature,
