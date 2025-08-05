@@ -55,7 +55,7 @@ async function swapSolToToken({ token, decimals }: Props) {
     Buffer.from(tx.serialize())
   );
 
-  return { signature, tokenPriceInSol };
+  return { signature, tokenPriceInSol, tokenAmount };
 }
 
 export default swapSolToToken;

@@ -127,13 +127,14 @@ async function handleMessage(props: Props) {
       return;
     }
 
-    const { signature, tokenPriceInSol } = result;
+    const { signature, tokenPriceInSol, tokenAmount } = result;
 
     const doc = await tokensCollection.insertOne({
       name,
       symbol,
       usdPrice,
       mint: token,
+      tokenAmount,
       hash: signature,
       tokenPriceInSol,
       boughtAt: new Date(),
