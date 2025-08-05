@@ -9,10 +9,12 @@ const SOLANA_API_KEY = process.env.SOLANA_API_KEY!;
 export interface Res {
   time: string;
   value: number;
+  amount: number;
   trans_id: string;
   flow: 'in' | 'out';
-  token_address: string;
   from_address: string;
+  token_address: string;
+  token_decimals: number;
 }
 
 const fetchNewTransaction = async () => {
