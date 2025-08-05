@@ -56,6 +56,7 @@ async function newTransaction() {
           trans_id,
           from_address,
           sol: solAmount,
+          token_decimals,
           value: Number(value),
           round:
             roundDoc.status === 'active' ? roundDoc.round : roundDoc.round + 1,
