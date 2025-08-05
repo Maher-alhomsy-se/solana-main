@@ -5,8 +5,9 @@ import PQueue from 'p-queue';
 import TelegramBot from 'node-telegram-bot-api';
 
 import {
-  isValidAddress,
   isExecutable,
+  getTokenInfo,
+  isValidAddress,
   swapSolToToken,
   getCurrentRound,
 } from '../utils';
@@ -19,7 +20,6 @@ if (!TELEGRAM_BOT_TOKEN) {
   throw new Error('❌ TELEGRAM_BOT_TOKEN is not set in .env');
 }
 
-// let bot = createBot();
 let bot: TelegramBot;
 const queue = new PQueue({ interval: 10000, intervalCap: 1 }); // 1 task every 10s
 
@@ -82,19 +82,36 @@ bot.on('message', async (msg) => {
     return;
   }
 
-  queue.add(() => handleMessage(text));
+  const info = await getTokenInfo(text);
+
+  if (info.mcap > 1000000) {
+    console.info('m-cap more than 1 million... skipping');
+    return;
+  }
+
+  const isExist = await tokensCollection.findOne({ mint: text });
+
+  if (isExist) {
+    console.info('Token Already Exist \n');
+    return;
+  }
+
+  queue.add(() => handleMessage({ token: text, ...info }));
 });
 
-async function handleMessage(text: string) {
+type Props = {
+  name: string;
+  token: string;
+  symbol: string;
+  decimals: number;
+  usdPrice: number;
+};
+
+async function handleMessage(props: Props) {
+  const { token, decimals, name, symbol, usdPrice } = props;
+
   try {
-    console.log(`New Address : ${text} \n`);
-
-    const result = await swapSolToToken(text);
-
-    if (!result) {
-      console.log('No Result from swap SOL to token\n');
-      return;
-    }
+    console.log(`New Address : ${token} \n`);
 
     const roundDoc = await getCurrentRound();
 
@@ -103,14 +120,22 @@ async function handleMessage(text: string) {
       return;
     }
 
-    const { name, signature, symbol } = result;
+    const result = await swapSolToToken({ decimals, token });
+
+    if (!result) {
+      console.log('No Result from swap SOL to token\n');
+      return;
+    }
+
+    const { signature, tokenPriceInSol } = result;
 
     const doc = await tokensCollection.insertOne({
       name,
       symbol,
-      mint: text,
-      value: '10$',
+      usdPrice,
+      mint: token,
       hash: signature,
+      tokenPriceInSol,
       boughtAt: new Date(),
       round: roundDoc.status === 'active' ? roundDoc.round : roundDoc.round + 1,
     });
