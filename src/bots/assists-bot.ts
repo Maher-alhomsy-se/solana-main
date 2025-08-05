@@ -66,7 +66,7 @@ HL5bfDCFR4EdnP4b9HZk3mAXFQpM6T89nBJSASpWr9KC
 
 Once the transaction is confirmed, you'll be automatically added to the system.`;
 
-  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  bot.sendMessage(chatId, message, { parse_mode: 'MarkdownV2' });
 });
 
 // Handle /total command
@@ -112,11 +112,9 @@ bot.onText(/^\/total$/, async (msg) => {
   }
 
   if (!tokens.length) {
-    return bot.sendMessage(
-      chatId,
-      `<i>No tokens bought in the last 7 days.</i>`,
-      { parse_mode: 'HTML' }
-    );
+    return bot.sendMessage(chatId, `<i>No tokens bought yet.</i>`, {
+      parse_mode: 'HTML',
+    });
   }
 
   const messages = splitTokens(tokens);
@@ -125,7 +123,7 @@ bot.onText(/^\/total$/, async (msg) => {
     let text;
 
     if (i === 0) {
-      text = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${messages[i]}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
+      text = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in current round:</b>\n${messages[i]}\n\n<b>💰 Total SOL Balance:</b> <code>${totalBalance} SOL</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
     } else text = messages[i];
 
     await bot.sendMessage(chatId, text, {
@@ -176,18 +174,27 @@ bot.on('text', async (msg) => {
     return;
   }
 
-  const txList = await txCollection.find({ from_address: input }).toArray();
+  const roundDoc = await getCurrentRound();
+
+  if (!roundDoc) {
+    console.log('No Round doc in text event \n');
+    return;
+  }
+
+  const txList = await txCollection
+    .find({ from_address: input, round: roundDoc.round })
+    .toArray();
 
   if (txList.length === 0) {
     bot.sendMessage(
       msg.chat.id,
-      `⚠️ *Address not found in our system.*\nNo transactions recorded for:\n\`${input}\``,
+      `⚠️ *Address not found in our system for current round.*\nNo transactions recorded for:\n\`${input}\``,
       { parse_mode: 'Markdown' }
     );
     return;
   }
 
-  const userTotal = txList.reduce((sum, tx) => sum + Number(tx.value), 0);
+  const userTotal = txList.reduce((sum, tx) => sum + Number(tx.sol), 0);
 
   console.log(`The total balance of ${input} is ${userTotal} \n`);
 
@@ -204,7 +211,7 @@ bot.on('text', async (msg) => {
   bot.sendMessage(
     msg.chat.id,
     `✅ *Your Contribution:*\n` +
-      `💵 Amount Sent: \`${userTotal.toFixed(4)} USDT\`\n` +
+      `💵 Amount Sent: \`${userTotal.toFixed(4)} SOL\`\n` +
       `📊 Share of Total Pool: \`${percentage}%\``,
     { parse_mode: 'Markdown' }
   );
