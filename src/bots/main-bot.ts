@@ -89,7 +89,10 @@ bot.on('message', async (msg) => {
     return;
   }
 
-  const isExist = await tokensCollection.findOne({ mint: text });
+  const isExist = await tokensCollection.findOne({
+    mint: text,
+    round: roundDoc.round,
+  });
 
   if (isExist) {
     console.info('Token Already Exist \n');
