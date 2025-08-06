@@ -16,9 +16,6 @@ async function newTransaction() {
         flow === 'in' && token_address === SOL_ADDRESS
     );
 
-    console.log('InComing Transactions');
-    console.log(inComingTransactions, '\n');
-
     if (inComingTransactions.length === 0) {
       console.log('No incoming SOL transfers found. \n');
       return;
@@ -51,6 +48,10 @@ async function newTransaction() {
       if (!isExist) {
         const solAmount = amount / Math.pow(10, token_decimals);
 
+        console.log('New Incoming Transaction \n');
+        console.log(`From: ${from_address}\n`);
+        console.log(`Sol Amount: ${solAmount} \n`);
+
         await txCollection.insertOne({
           time,
           trans_id,
@@ -63,19 +64,19 @@ async function newTransaction() {
         });
 
         totalBalance += Number(solAmount);
+
+        await balanceCollection.updateOne(
+          // @ts-ignore
+          { _id: 'wallet-balance' },
+          { $set: { totalBalance } },
+          { upsert: true }
+        );
+
+        console.log(`✅ Total balance updated: ${totalBalance} SOL\n`);
       }
     }
 
     lastTransaction = newestTx;
-
-    await balanceCollection.updateOne(
-      // @ts-ignore
-      { _id: 'wallet-balance' },
-      { $set: { totalBalance } },
-      { upsert: true }
-    );
-
-    console.log(`✅ Total balance updated: ${totalBalance} SOL\n`);
   } catch (error) {
     console.log('error in newTransaction function : \n');
     console.log(error, '\n');
