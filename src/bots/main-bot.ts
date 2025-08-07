@@ -24,12 +24,14 @@ let bot: TelegramBot;
 const queue = new PQueue({ interval: 10000, intervalCap: 1 }); // 1 task every 10s
 
 function createBot() {
-  const b = new TelegramBot(TELEGRAM_BOT_TOKEN!, { polling: true });
+  const b = new TelegramBot(TELEGRAM_BOT_TOKEN!, {
+    polling: { autoStart: true, interval: 1000, params: { timeout: 60 } },
+  });
 
   b.on('polling_error', (err) => {
-    console.error('Polling error:', err.message, '\n');
+    console.error('Polling error in main bot:', err.message, '\n');
 
-    restartBot();
+    // restartBot();
   });
 
   return b;
