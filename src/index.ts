@@ -2,9 +2,10 @@ import cron from 'node-cron';
 
 import reset from './reset';
 import { roundCollection } from './lib/db';
-import newTransaction from './new-transaction';
 import startNewRound from './start-new-round';
-import { formatRemainingTime, getCurrentRound } from './utils';
+import newTransaction from './new-transaction';
+import { getCurrentRound, formatRemainingTime } from './utils';
+import scheduleSellHalfToken from './schedule-sell-half-token';
 
 import './bots/main-bot'; // force execute bot file
 import './bots/assists-bot';
@@ -62,6 +63,11 @@ const main = async () => {
   cron.schedule('*/5 * * * *', () => {
     console.log('Running new transaction every 5 minutes \n');
     newTransaction();
+  });
+
+  cron.schedule('0 * * * *', () => {
+    console.log('Running schedule sell half amount of token \n');
+    scheduleSellHalfToken();
   });
 };
 

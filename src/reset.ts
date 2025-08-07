@@ -21,7 +21,7 @@ const reset = async () => {
 
     for (const token of tokens) {
       const { mint } = token;
-      const sign = await swapTokenToSol(mint);
+      const sign = await swapTokenToSol({ token: mint });
 
       if (sign) {
         console.log(`✅ Sold ${mint}, tx: ${sign}`);

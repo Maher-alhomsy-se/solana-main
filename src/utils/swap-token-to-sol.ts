@@ -1,11 +1,18 @@
-import getTokenBalance from './get-token-balance';
-import { connection, jupiter, payer } from '../config/jupiter';
 import {
-  sendAndConfirmRawTransaction,
   VersionedTransaction,
+  sendAndConfirmRawTransaction,
 } from '@solana/web3.js';
 
-const swapTokenToSol = async (token: string) => {
+import getTokenBalance from './get-token-balance';
+import { connection, jupiter, payer } from '../config/jupiter';
+
+interface Props {
+  token: string;
+  decimals?: number;
+  amountInTokens?: number;
+}
+
+const swapTokenToSol = async ({ token, amountInTokens, decimals }: Props) => {
   try {
     const balance = await getTokenBalance(token);
 
@@ -14,14 +21,24 @@ const swapTokenToSol = async (token: string) => {
       return null;
     }
 
-    console.log(`🔁 Swapping ${Number(balance) / 1e6} ${token} to SOL \n`);
+    let amountToSell = balance;
+    if (amountInTokens && decimals !== undefined) {
+      amountToSell = BigInt(
+        Math.floor(amountInTokens * Math.pow(10, decimals))
+      );
+    }
+
+    // console.log(
+    //   `🔁 Swapping ${
+    //     Number(amountToSell) / Math.pow(10, decimals)
+    //   } ${token} to SOL`
+    // );
 
     const quoteResponse = await jupiter.quoteGet({
       slippageBps: 100,
       inputMint: token,
-      // amount: Number(balance),
       // @ts-ignore
-      amount: balance.toString(),
+      amount: amountToSell.toString(),
       outputMint: 'So11111111111111111111111111111111111111112',
     });
 
@@ -37,7 +54,8 @@ const swapTokenToSol = async (token: string) => {
     });
 
     if (!swapRes.swapTransaction) {
-      throw new Error('❌ Swap transaction not returned from Jupiter API \n');
+      console.log('❌ Swap transaction not returned from Jupiter API \n');
+      return null;
     }
 
     const serializedTx = Buffer.from(swapRes.swapTransaction, 'base64');
