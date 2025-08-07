@@ -61,7 +61,7 @@ async function scheduleSellHalfToken() {
         console.log(`✅ Sold 50% of ${mint}, tx: ${txSig}`);
 
         await tokensCollection.updateOne(
-          { mint },
+          { mint, round: roundDoc.round },
           { $set: { soldHalf: true } }
         );
       } else {
