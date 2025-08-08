@@ -56,15 +56,17 @@ Track your balance, see what was bought, and ride the wave.
 bot.onText(/^\/to$/, (msg) => {
   const chatId = msg.chat.id;
 
-  const message = `🚀 <b>Start Investing Now!</b>
+  const message = `🚀 *Start Investing Now!*
 
-To participate, please send at least <b>0.001 SOL</b> to the address below:
+To participate, please send at least *0.001 SOL* to the address below:
 
-<pre>HL5bfDCFR4EdnP4b9HZk3mAXFQpM6T89nBJSASpWr9KC</pre>
+\`HL5bfDCFR4EdnP4b9HZk3mAXFQpM6T89nBJSASpWr9KC\`
+
+(Tap and hold to copy)
 
 Once the transaction is confirmed, you'll be automatically added to the system.`;
 
-  bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
 });
 
 // Handle /total command
