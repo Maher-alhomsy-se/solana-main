@@ -62,8 +62,6 @@ To participate, please send at least *0.001 SOL* to the address below:
 
 \`HL5bfDCFR4EdnP4b9HZk3mAXFQpM6T89nBJSASpWr9KC\`
 
-(Tap and hold to copy)
-
 Once the transaction is confirmed, you'll be automatically added to the system.`;
 
   bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
