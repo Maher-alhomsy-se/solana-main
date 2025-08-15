@@ -52,6 +52,11 @@ async function newTransaction() {
         console.log(`From: ${from_address}\n`);
         console.log(`Sol Amount: ${solAmount} \n`);
 
+        if (solAmount < 0.03) {
+          console.log('Balance less than 0.03 skipping');
+          return;
+        }
+
         await txCollection.insertOne({
           time,
           trans_id,
