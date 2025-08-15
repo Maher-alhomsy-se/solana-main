@@ -1,9 +1,12 @@
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+
 import {
   txCollection,
   tokensCollection,
   balanceCollection,
   balanceHistoryCollection,
 } from './lib/db';
+import { connection, payer } from './config/jupiter';
 import { delay, getCurrentRound, sendSolToUser, swapTokenToSol } from './utils';
 
 const reset = async () => {
@@ -39,7 +42,7 @@ const reset = async () => {
     const prevTotalBalance = balanceDoc?.totalBalance || 0;
 
     if (prevTotalBalance <= 0) {
-      console.warn('⚠️ No funds to distribute.');
+      console.warn('⚠️ No deposits recorded, skipping distribution.');
       return;
     }
 
@@ -47,8 +50,16 @@ const reset = async () => {
       .find({ round: roundDoc.round })
       .toArray();
 
-    const keepAmount = prevTotalBalance * 0.2;
-    const distributable = prevTotalBalance * 0.8;
+    const walletBalanceLamports = await connection.getBalance(payer.publicKey);
+    const actualBalanceSOL = walletBalanceLamports / LAMPORTS_PER_SOL;
+
+    if (actualBalanceSOL <= 0) {
+      console.warn('⚠️ No actual funds to distribute.');
+      return;
+    }
+
+    const keepAmount = actualBalanceSOL * 0.2;
+    const distributable = actualBalanceSOL * 0.8;
 
     const userMap: any = {};
 
