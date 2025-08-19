@@ -8,10 +8,11 @@ import { jupiter, payer, connection } from '../config/jupiter';
 type Props = {
   token: string;
   decimals: number;
+  buyDouble?: boolean;
 };
 
-async function swapSolToToken({ token, decimals }: Props) {
-  const solAmount = 0.15;
+async function swapSolToToken({ token, decimals, buyDouble }: Props) {
+  const solAmount = buyDouble ? 0.3 : 0.15;
   const lamports = Math.floor(solAmount * 1e9);
 
   const balance = await connection.getBalance(payer.publicKey);

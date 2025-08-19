@@ -30,33 +30,16 @@ function createBot() {
 
   b.on('polling_error', (err) => {
     console.error('Polling error in main bot:', err.message, '\n');
-
-    // restartBot();
   });
 
   return b;
-}
-
-function restartBot() {
-  try {
-    console.log('Restarting bot polling... \n');
-
-    bot
-      .stopPolling()
-      .then(() => {
-        bot = createBot();
-      })
-      .catch(console.error);
-  } catch (e) {
-    console.error('Failed to restart bot:', e, '\n');
-  }
 }
 
 bot = createBot();
 
 bot.on('message', async (msg) => {
   const text = msg.text?.trim();
-  console.log('user name | ', msg.from?.username);
+  const username = msg.from?.username;
 
   if (!text) return;
 
@@ -85,24 +68,35 @@ bot.on('message', async (msg) => {
     return;
   }
 
-  const info = await getTokenInfo(text);
+  const isSimon = username === 'zksnarks';
+  const isForced = text.split(' ')[1]?.endsWith('-o');
 
-  if (info.mcap > 1000000) {
-    console.info('m-cap more than 1 million... skipping');
-    return;
+  if (isForced && isSimon) {
+    console.log('forced state will buy double\n');
+
+    const info = await getTokenInfo(text);
+
+    queue.add(() => handleMessage({ token: text, ...info, buyDouble: true }));
+  } else {
+    const info = await getTokenInfo(text);
+
+    if (info.mcap > 1000000) {
+      console.info('m-cap more than 1 million... skipping');
+      return;
+    }
+
+    const isExist = await tokensCollection.findOne({
+      mint: text,
+      round: roundDoc.round,
+    });
+
+    if (isExist) {
+      console.info('Token Already Exist \n');
+      return;
+    }
+
+    queue.add(() => handleMessage({ token: text, ...info }));
   }
-
-  const isExist = await tokensCollection.findOne({
-    mint: text,
-    round: roundDoc.round,
-  });
-
-  if (isExist) {
-    console.info('Token Already Exist \n');
-    return;
-  }
-
-  queue.add(() => handleMessage({ token: text, ...info }));
 });
 
 type Props = {
@@ -111,10 +105,11 @@ type Props = {
   symbol: string;
   decimals: number;
   usdPrice: number;
+  buyDouble?: boolean;
 };
 
 async function handleMessage(props: Props) {
-  const { token, decimals, name, symbol, usdPrice } = props;
+  const { token, decimals, name, symbol, usdPrice, buyDouble } = props;
 
   try {
     console.log(`New Address : ${token} \n`);
@@ -126,7 +121,7 @@ async function handleMessage(props: Props) {
       return;
     }
 
-    const result = await swapSolToToken({ decimals, token });
+    const result = await swapSolToToken({ decimals, token, buyDouble });
 
     if (!result) {
       console.log('No Result from swap SOL to token\n');
