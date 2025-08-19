@@ -56,6 +56,7 @@ bot = createBot();
 
 bot.on('message', async (msg) => {
   const text = msg.text?.trim();
+  console.log('user name | ', msg.from?.username);
 
   if (!text) return;
 
