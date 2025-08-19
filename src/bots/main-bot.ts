@@ -43,11 +43,13 @@ bot.on('message', async (msg) => {
 
   if (!text) return;
 
-  const isValid = isValidAddress(text);
+  const address = text?.split(' ')[0] ?? text;
+
+  const isValid = isValidAddress(address);
 
   if (!isValid) return;
 
-  const validation = await isExecutable(text);
+  const validation = await isExecutable(address);
 
   if (!validation.valid) {
     console.error('❌ Invalid or non-existent Solana address');
@@ -68,17 +70,19 @@ bot.on('message', async (msg) => {
     return;
   }
 
-  const isSimon = username === 'zksnarks';
   const isForced = text.split(' ')[1]?.endsWith('-o');
+  const isSimon = username === 'zksnarks' || username === 'maher_alhomsy';
 
   if (isForced && isSimon) {
     console.log('forced state will buy double\n');
 
-    const info = await getTokenInfo(text);
+    const info = await getTokenInfo(address);
 
-    queue.add(() => handleMessage({ token: text, ...info, buyDouble: true }));
+    queue.add(() =>
+      handleMessage({ token: address, ...info, buyDouble: true })
+    );
   } else {
-    const info = await getTokenInfo(text);
+    const info = await getTokenInfo(address);
 
     if (info.mcap > 1000000) {
       console.info('m-cap more than 1 million... skipping');
@@ -86,7 +90,7 @@ bot.on('message', async (msg) => {
     }
 
     const isExist = await tokensCollection.findOne({
-      mint: text,
+      mint: address,
       round: roundDoc.round,
     });
 
@@ -95,7 +99,7 @@ bot.on('message', async (msg) => {
       return;
     }
 
-    queue.add(() => handleMessage({ token: text, ...info }));
+    queue.add(() => handleMessage({ token: address, ...info }));
   }
 });
 
