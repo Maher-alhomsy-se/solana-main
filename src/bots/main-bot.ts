@@ -12,6 +12,7 @@ import {
   getCurrentRound,
 } from '../utils';
 import { tokensCollection } from '../lib/db';
+import { TELEGRAM_USERS_NAME } from './constants';
 
 // 1️⃣ Load token early
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -71,9 +72,9 @@ bot.on('message', async (msg) => {
   }
 
   const isForced = text.split(' ')[1]?.endsWith('-o');
-  const isSimon = username === 'zksnarks' || username === 'maher_alhomsy';
+  const isAllowToForce = TELEGRAM_USERS_NAME.includes(username ?? '');
 
-  if (isForced && isSimon) {
+  if (isForced && isAllowToForce) {
     console.log('forced state will buy double\n');
 
     const info = await getTokenInfo(address);
