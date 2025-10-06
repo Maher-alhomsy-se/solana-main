@@ -1,20 +1,21 @@
-import type { Res } from './utils/fetch-new-transaction';
 import { balanceCollection, txCollection } from './lib/db';
-import { fetchNewTransaction, getCurrentRound, getTotalBalance } from './utils';
+import { newFetchNewTransaction, Res } from './utils/fetch-new-transaction';
+import { getCurrentRound, getTotalBalance } from './utils';
 
 let lastTransaction: Res | null = null;
-const SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
+// const SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
 
 async function newTransaction() {
   try {
     let totalBalance = await getTotalBalance();
 
-    const transactions = await fetchNewTransaction();
+    // const transactions = await fetchNewTransaction();
+    const inComingTransactions = await newFetchNewTransaction();
 
-    const inComingTransactions = transactions.filter(
-      ({ flow, token_address }) =>
-        flow === 'in' && token_address === SOL_ADDRESS
-    );
+    // const inComingTransactions = transactions.filter(
+    //   ({ flow, token_address }) =>
+    //     flow === 'in' && token_address === SOL_ADDRESS
+    // );
 
     if (inComingTransactions.length === 0) {
       console.log('No incoming SOL transfers found. \n');
@@ -46,13 +47,14 @@ async function newTransaction() {
       const isExist = await txCollection.findOne({ trans_id });
 
       if (!isExist) {
-        const solAmount = amount / Math.pow(10, token_decimals);
+        // const solAmount = amount / Math.pow(10, token_decimals);
 
         console.log('New Incoming Transaction \n');
         console.log(`From: ${from_address}\n`);
-        console.log(`Sol Amount: ${solAmount} \n`);
+        console.log(`Sol Amount: ${value} \n`); // ##
 
-        if (solAmount < 0.03) {
+        // ##
+        if (value < 0.03) {
           console.log('Balance less than 0.03 skipping');
           return;
         }
@@ -61,14 +63,14 @@ async function newTransaction() {
           time,
           trans_id,
           from_address,
-          sol: solAmount,
+          sol: value, // ##
           token_decimals,
-          value: Number(value),
+          value: value,
           round:
             roundDoc.status === 'active' ? roundDoc.round : roundDoc.round + 1,
         });
 
-        totalBalance += Number(solAmount);
+        totalBalance += Number(value);
 
         await balanceCollection.updateOne(
           // @ts-ignore
